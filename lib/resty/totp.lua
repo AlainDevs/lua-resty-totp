@@ -25,22 +25,6 @@ local _M = {
     _VERSION = '0.02.01',
 }
 
-local function percent_encode_char(c)
-    return string_format("%%%02X", c:byte())
-end
-
-
-local function url_encode(str)
-    -- Use ngx.re.gsub for regex substitution
-    local r, _, err = gsub(str, "[^a-zA-Z0-9.~_-]", percent_encode_char)
-    if err then
-        ngx.log(ngx.ERR, "Failed to URL encode: ", err)
-        return nil, err
-    end
-    return r
-end
-
-
 local function totp_time_calc(ngx_time)
     local time_str = ffi.new("uint8_t[8]")
     for i = 7, 0, -1 do
@@ -110,18 +94,6 @@ function TOTP_MT:get_url(issuer, account)
         account,
         "?secret=", self.key,
         "&issuer=", issuer,
-    }
-end
-
-
-function TOTP_MT:get_qr_url(issuer, account)
-    return table_concat{
-        "https://chart.googleapis.com/chart",
-        "?chs=", "200x200",
-        "&cht=qr",
-        "&chl=200x200",
-        "&chld=M|0",
-        "&chl=", url_encode(self:get_url(issuer, account)),
     }
 end
 
